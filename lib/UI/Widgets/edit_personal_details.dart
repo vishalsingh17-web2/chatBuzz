@@ -1,4 +1,6 @@
+import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
+import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -60,6 +62,39 @@ editPersonalDetails({required BuildContext context, required String name, String
                 child: const Text('Save'),
               ),
             )
+          ],
+        ),
+      );
+    },
+  );
+}
+
+toggleChatType({required BuildContext context, required ConversationTile conversationTile}) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () {
+                if (conversationTile.isPinnedChat) {
+                  Provider.of<ChatController>(context, listen: false).unpinChat(conversationTile);
+                } else {
+                  Provider.of<ChatController>(context, listen: false).pinChat(conversationTile);
+                }
+              },
+              child: conversationTile.isPinnedChat ? const Text("Unpin this chat") : const Text("Pin this chat"),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () {},
+              child: const Text("Delete this chat", style: TextStyle(color: Colors.red)),
+            ),
           ],
         ),
       );

@@ -1,13 +1,15 @@
 
+import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Controller/theme_controller.dart';
 import 'package:chatbuzz/UI/Pages/call_page.dart';
 import 'package:chatbuzz/UI/Pages/homescreen.dart';
+import 'package:chatbuzz/UI/Pages/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'UI/Pages/call_history.dart';
+import 'UI/Pages/group.dart';
 import 'UI/Pages/settings.dart';
 
 void main() async {
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => PersonalDetails()),
         ChangeNotifierProvider(create: (_) => ThemeController()),
+        ChangeNotifierProvider(create: (_) => ChatController()),
       ],
       child: Consumer<ThemeController>(
         builder: (context, theme, child) {
@@ -38,7 +41,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: const MainScreen(),
+            home: const LoginPage(),
           );
         },
       ),
@@ -48,8 +51,8 @@ class MyApp extends StatelessWidget {
 
 List screens = const [
   HomeScreen(),
+  Group(),
   CallPage(),
-  CallHistory(),
   Settings(),
 ];
 
@@ -73,9 +76,9 @@ class _MainScreenState extends State<MainScreen> {
           unselectedItemColor: Theme.of(context).brightness == Brightness.dark ? Colors.blue.shade100 : Colors.grey,
           onTap: (value) => setState(() => index = value),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+            BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chats"),
+            BottomNavigationBarItem(icon: Icon(Icons.group), label: "Group Chats"),
             BottomNavigationBarItem(icon: Icon(Icons.call), label: "Call"),
-            BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
             BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
           ],
         ),

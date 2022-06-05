@@ -39,7 +39,14 @@ class _SettingsState extends State<Settings> {
                 child: Row(
                   children: [
                     InkWell(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileImage())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileImage(
+                            link: details.personalDetails.profilePicture,
+                          ),
+                        ),
+                      ),
                       child: Hero(
                         tag: "ProfilePic",
                         child: Container(

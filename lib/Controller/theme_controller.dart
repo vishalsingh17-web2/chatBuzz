@@ -28,12 +28,12 @@ class ThemeController extends ChangeNotifier {
       notifyListeners();
       Hive.box('theme').put('selectedTheme', 0);
     }
-    print(selectedtheme);
+    
     notifyListeners();
   }
 
   void changeTheme() {
-    print(Hive.box('theme').get('selectedTheme'));
+
     if (selectedtheme == theme[0]) {
       selectedtheme = theme[1];
       isDarkTheme = true;

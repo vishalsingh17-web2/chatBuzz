@@ -1,10 +1,13 @@
+import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:chatbuzz/UI/Pages/chat_screen.dart';
+import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PinnedChatBox extends StatefulWidget {
-  bool isPinnedChatBox;
-  PinnedChatBox({Key? key, required this.isPinnedChatBox}) : super(key: key);
+  ConversationTile conversationTile;
+  PinnedChatBox({Key? key, required this.conversationTile}) : super(key: key);
 
   @override
   State<PinnedChatBox> createState() => _PinnedChatBoxState();
@@ -14,21 +17,26 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onLongPress: () {
+        toggleChatType(context: context, conversationTile: widget.conversationTile);
+      },
       onTap: () {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => const ChatScreen(),
+            builder: (context) => ChatScreen(
+              conversationTile: widget.conversationTile,
+            ),
           ),
         );
       },
       autofocus: true,
-      dense: widget.isPinnedChatBox,
+      dense: widget.conversationTile.isPinnedChat,
       title: Text(
-        "Vishal Singh",
-        style: TextStyle(fontWeight: !widget.isPinnedChatBox ? FontWeight.bold : null),
+        widget.conversationTile.name,
+        style: TextStyle(fontWeight: !widget.conversationTile.isPinnedChat ? FontWeight.bold : null),
       ),
-      trailing: !widget.isPinnedChatBox
+      trailing: !widget.conversationTile.isPinnedChat
           ? Column(
               children: [
                 Text(
@@ -43,17 +51,19 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
                   height: 20,
                   width: 20,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
+                  decoration: BoxDecoration(
+                    color: widget.conversationTile.unreadCount != 0 ? Colors.blue : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
-                  child: const Text(
-                    "5",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
-                  ),
+                  child: widget.conversationTile.unreadCount != 0
+                      ? Text(
+                          widget.conversationTile.unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                        )
+                      : null,
                 )
               ],
             )
@@ -62,10 +72,10 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
-      subtitle: const Text(
-        "Hey, how are you?",
+      subtitle: Text(
+        widget.conversationTile.lastMessage,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 13),
+        style: const TextStyle(fontSize: 13),
       ),
       leading: Stack(
         children: [
@@ -73,11 +83,11 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
             padding: const EdgeInsets.all(20),
             height: 40,
             width: 40,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
                 image: NetworkImage(
-                  "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+                  widget.conversationTile.avatarUrl,
                 ),
               ),
             ),
