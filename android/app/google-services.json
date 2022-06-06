@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "433366462780",
+    "project_id": "chatbuzz-61448",
+    "storage_bucket": "chatbuzz-61448.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433366462780:android:dc9abf10042fee1c3a6e39",
+        "android_client_info": {
+          "package_name": "com.example.chatbuzz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433366462780-n5r83mme6jk7j8f3f0dutglgg7c7ko0k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chatbuzz",
+            "certificate_hash": "216484d305d5bd2d8fd40d846bb00c0abc671143"
+          }
+        },
+        {
+          "client_id": "433366462780-l2mrnr8579lduse6reneg4nroscbq45a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbhBfaMGMnREYc43bf7lmhKww_ARF-n68"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433366462780-l2mrnr8579lduse6reneg4nroscbq45a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
