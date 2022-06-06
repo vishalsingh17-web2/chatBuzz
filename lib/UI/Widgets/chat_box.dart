@@ -1,9 +1,12 @@
 import 'package:chatbuzz/Data/models/chat_data_model.dart';
+import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ChatBox extends StatelessWidget {
   final ChatData chatData;
-  const ChatBox({Key? key, required this.chatData}) : super(key: key);
+  final String roomId;
+  const ChatBox({Key? key, required this.chatData, required this.roomId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +34,13 @@ class ChatBox extends StatelessWidget {
           //     : Container(),
           chatData.isMe
               ? Container(
-                  width: MediaQuery.of(context).size.width * 0.75,
-                  margin: const EdgeInsets.symmetric(vertical: 5),
-                  alignment: Alignment.centerRight,
+                width: MediaQuery.of(context).size.width * 0.75,
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                alignment: Alignment.centerRight,
+                child: InkWell(
+                  onLongPress: () {
+                    deleteChat(context: context, time: chatData.time, roomId: roomId);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: const BoxDecoration(
@@ -55,10 +62,10 @@ class ChatBox extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyText1,
                           ),
                           TextSpan(
-                            text: chatData.time,
+                            text: DateFormat.jm().format(DateTime.parse(chatData.time)),
                             style: Theme.of(context).textTheme.caption!.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 10,
                                   color: Colors.white.withOpacity(0.7),
                                 ),
                           ),
@@ -66,7 +73,8 @@ class ChatBox extends StatelessWidget {
                       ),
                     ),
                   ),
-                )
+                ),
+              )
               : Container(
                   margin: const EdgeInsets.symmetric(vertical: 5),
                   width: MediaQuery.of(context).size.width * 0.75,
@@ -92,10 +100,10 @@ class ChatBox extends StatelessWidget {
                           ),
                           TextSpan(
                             spellOut: true,
-                            text: chatData.time,
+                            text: DateFormat.jm().format(DateTime.parse(chatData.time)),
                             style: Theme.of(context).textTheme.caption!.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 10,
                                   color: Theme.of(context).unselectedWidgetColor,
                                 ),
                           ),

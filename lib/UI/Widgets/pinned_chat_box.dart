@@ -3,6 +3,7 @@ import 'package:chatbuzz/UI/Pages/chat_screen.dart';
 import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class PinnedChatBox extends StatefulWidget {
   ConversationTile conversationTile;
@@ -32,50 +33,54 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
       autofocus: true,
       dense: widget.conversationTile.isPinnedChat,
       title: Text(
-        widget.conversationTile.name,
+        widget.conversationTile.userDetails.name,
         style: TextStyle(fontWeight: !widget.conversationTile.isPinnedChat ? FontWeight.bold : null),
       ),
       trailing: !widget.conversationTile.isPinnedChat
-          ? Column(
-              children: [
-                Text(
-                  "08:30 PM",
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
-                    fontSize: 10,
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 5),
-                  height: 20,
-                  width: 20,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: widget.conversationTile.unreadCount != 0 ? Colors.blue : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: widget.conversationTile.unreadCount != 0
-                      ? Text(
-                          widget.conversationTile.unreadCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                          ),
-                        )
-                      : null,
-                )
-              ],
+          ? Text(
+              widget.conversationTile.time == "" ? "" : DateFormat.jm().format(DateTime.parse(widget.conversationTile.time)),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
+                fontSize: 10,
+              ),
             )
+
+          // Column(
+          //     children: [
+
+          //       Container(
+          //         margin: const EdgeInsets.only(top: 5),
+          //         height: 20,
+          //         width: 20,
+          //         alignment: Alignment.center,
+          //         decoration: BoxDecoration(
+          //           color: widget.conversationTile.unreadCount != 0 ? Colors.blue : Colors.transparent,
+          //           shape: BoxShape.circle,
+          //         ),
+          //         child: widget.conversationTile.unreadCount != 0
+          //             ? Text(
+          //                 widget.conversationTile.unreadCount.toString(),
+          //                 style: const TextStyle(
+          //                   color: Colors.white,
+          //                   fontSize: 10,
+          //                 ),
+          //               )
+          //             : null,
+          //       )
+          //     ],
+          //   )
           : null,
       tileColor: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF2F2F2) : Colors.black,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
-      subtitle: Text(
-        widget.conversationTile.lastMessage,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 13),
-      ),
+      subtitle: widget.conversationTile.lastMessage == ""
+          ? null
+          : Text(
+              widget.conversationTile.lastMessage,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
       leading: Stack(
         children: [
           Container(
@@ -86,7 +91,7 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
               shape: BoxShape.circle,
               image: DecorationImage(
                 image: NetworkImage(
-                  widget.conversationTile.avatarUrl,
+                  widget.conversationTile.userDetails.profilePicture,
                 ),
               ),
             ),

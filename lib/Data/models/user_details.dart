@@ -29,6 +29,30 @@ class UserDetails {
       status: data.get('status'),
     );
   }
+
+  static Map<String,dynamic> fromUserDetails(UserDetails data) {
+    return {
+      'uid': data.id,
+      'displayName': data.name,
+      'bio': data.bio,
+      'photoUrl': data.profilePicture,
+      'email': data.email,
+      'phoneNumber': data.phoneNumber,
+      'status': data.status,
+    };
+  }
+
+  factory UserDetails.fromMap(Map<String, dynamic> data) {
+    return UserDetails(
+      id: data['uid'],
+      name: data['displayName'],
+      bio: data['bio'],
+      profilePicture: data['photoUrl'],
+      email: data['email'],
+      phoneNumber: data['phoneNumber'],
+      status: data['status'],
+    );
+  }
   // 'uid': currentUser.uid.toString(),
   //     'email': currentUser.email.toString(),
   //     'displayName': name ?? currentUser.displayName.toString(),

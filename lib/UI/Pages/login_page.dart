@@ -17,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context, login, details, child) {
         return SafeArea(
           child: Scaffold(
-            backgroundColor: Colors.white,
             body: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(

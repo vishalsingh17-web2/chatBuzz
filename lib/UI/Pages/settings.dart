@@ -1,8 +1,11 @@
+import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/login_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Controller/theme_controller.dart';
 import 'package:chatbuzz/UI/Pages/chat_screen.dart';
+import 'package:chatbuzz/UI/Pages/login_page.dart';
 import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,13 +17,11 @@ class Setting extends StatefulWidget {
 }
 
 class _SettingState extends State<Setting> {
-
-
   bool show = false;
   @override
   Widget build(BuildContext context) {
-    return Consumer2<PersonalDetails, ThemeController>(
-      builder: (context, details, theme, child) {
+    return Consumer3<PersonalDetails, ThemeController, LoginController>(
+      builder: (context, details, theme, login, child) {
         return Container(
           padding: const EdgeInsets.all(12),
           child: ListView(
@@ -187,7 +188,12 @@ class _SettingState extends State<Setting> {
               ),
               const SizedBox(height: 30),
               ListTile(
-                onTap: () {},
+                onTap: () async {
+                  var userList = Provider.of<ChatController>(context, listen: false);
+                  userList.clearAllChats();
+                  Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LoginPage()));
+                  await login.logOut();
+                },
                 title: const Text(
                   "Log Out",
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),

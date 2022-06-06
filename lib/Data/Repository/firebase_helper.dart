@@ -1,3 +1,4 @@
+import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,14 +42,11 @@ class FirebaseService {
       'bio': bio ?? '',
       'status': true,
     };
-    //
     await users.doc(currentUser.email).get().then((value) {
       if (!value.exists) {
         users.doc(currentUser.email).set(userInfo);
       }
     });
-
-    // SharedData.saveUser(userInfo);
   }
 
   static Future<UserDetails> getUserData() async {
@@ -57,24 +55,138 @@ class FirebaseService {
     return userDetails;
   }
 
-  static void writeData() {
-    // var user =  auth.currentUser!;
-    // var email = user.email;
-    // users.doc(email).set({
-    //   'uid': user.uid,
-    //   'email': email,
-    //   'photoUrl': user.photoURL,
-    //   'displayName': user.displayName,
-    //   'phoneNumber': user.phoneNumber,
-    //   'fcmToken': Boxes.getFCMToken(),
-    // });
+  static Future updateUserInfo({String? name, String? bio, String? photoUrl}) async {
+    UserDetails currentUser = await getUserData();
+    users.doc(FirebaseAuth.instance.currentUser!.email).update({
+      'displayName': name ?? currentUser.name,
+      'bio': bio ?? currentUser.bio,
+      'photoUrl': photoUrl ?? currentUser.profilePicture,
+    });
+    FirebaseService firebaseService = FirebaseService();
+    List<ConversationTile> list = await firebaseService.fetchMyRooms();
+    currentUser.bio = bio ?? currentUser.bio;
+    currentUser.name = name ?? currentUser.name;
+    currentUser.profilePicture = photoUrl ?? currentUser.profilePicture;
+    for (int i = 0; i < list.length; i++) {
+      chats.doc(list[i].roomId).update({
+        'userDetails': [
+          UserDetails.fromUserDetails(list[i].userDetails),
+          UserDetails.fromUserDetails(currentUser),
+        ]
+      });
+    }
   }
 
   // getting list of documents from users collection
-  static getUserList() async {
-    // QuerySnapshot querySnapshot = await users.get();
-    // List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    // allData = allData.map((e,) => e as Map<String, dynamic>).toList();
-    // return allData;
+  static Future<List<UserDetails>> getUserList() async {
+    QuerySnapshot querySnapshot = await users.get();
+    List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
+    List<UserDetails> userList = [];
+    for (int i = 0; i < allData.length; i++) {
+      userList.add(UserDetails.fromMap(data[i]));
+    }
+    return userList;
+  }
+
+  Future createRoom(ConversationTile tile, UserDetails currentUser) async {
+    print('creating room');
+    var user = auth.currentUser!;
+    if (user.email == tile.userDetails.email) {
+      return;
+    }
+    List<String> users = [user.email!, tile.userDetails.email];
+    users.sort();
+    String roomId = "${users[0]} _ ${users[1]}";
+    await chats.doc(roomId).set({
+      'isPinned': {tile.userDetails.email: false, currentUser.email: false},
+      'userDetails': [
+        UserDetails.fromUserDetails(tile.userDetails),
+        UserDetails.fromUserDetails(currentUser),
+      ],
+      'roomId': roomId,
+      'users': users,
+      'lastMessage': '',
+      'lastMessageTime': '',
+      'lastMessageSender': '',
+      'unreadCount': 0,
+    });
+  }
+
+  pinChat({required ConversationTile tile}) async {
+    Map<String, bool> isPin = tile.pin;
+    isPin[auth.currentUser!.email!] = true;
+    await chats.doc(tile.roomId).update({
+      'isPinned': isPin,
+    });
+  }
+
+  unpinChat({required ConversationTile tile}) async {
+    Map<String, bool> isPin = tile.pin;
+    isPin[auth.currentUser!.email!] = false;
+    await chats.doc(tile.roomId).update({
+      'isPinned': isPin,
+    });
+  }
+
+  Future<List<ConversationTile>> fetchMyRooms() async {
+    var user = auth.currentUser!;
+    QuerySnapshot querySnapshot = await chats.where('users', arrayContains: user.email).get();
+    List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
+    List<ConversationTile> conversationTiles = [];
+    for (int i = 0; i < data.length; i++) {
+      conversationTiles.add(
+        ConversationTile.fromMap(data[i]),
+      );
+    }
+    return conversationTiles;
+  }
+
+  addChat({
+    required String roomId,
+    required String message,
+    required String lastMessageSender,
+    required avatarUrl,
+    required String date,
+  }) async {
+    await chats.doc(roomId).update({
+      'lastMessage': message,
+      'lastMessageTime': date,
+      'lastMessageSender': lastMessageSender,
+    });
+    await chats.doc(roomId).collection('messages').add({
+      'message': message,
+      'sender': lastMessageSender,
+      'time': date,
+      'avatar': avatarUrl,
+    });
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getChats({required String roomId}) {
+    return chats.doc(roomId).collection('messages').orderBy('time', descending: false).snapshots().asBroadcastStream();
+  }
+
+  getChatToShow({required String roomId}) async {
+    QuerySnapshot querySnapshot = await chats.doc(roomId).collection('messages').orderBy('time', descending: false).get();
+    List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
+    List<ChatData> chatData = [];
+    data.forEach((element) {
+      chatData.add(ChatData.fromMap(element, auth.currentUser!.email == element['sender']));
+    });
+    return chatData;
+  }
+
+  deleteChatRoom({required String roomId}) async {
+    await chats.doc(roomId).delete();
+  }
+
+  deleteMessage({required String roomId, required String time}) async {
+    await chats.doc(roomId).collection('messages').where('time', isEqualTo: time).get().then((value) {
+      value.docs.forEach((element) {
+        element.reference.delete();
+      });
+    });
   }
 }

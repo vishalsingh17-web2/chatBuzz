@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/login_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Controller/theme_controller.dart';
+import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/UI/Pages/call_page.dart';
 import 'package:chatbuzz/UI/Pages/homescreen.dart';
 import 'package:chatbuzz/UI/Pages/login_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,7 @@ import 'UI/Pages/settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp();
+  await Firebase.initializeApp();
   await Hive.initFlutter();
   await Hive.openBox('theme');
   runApp(const MyApp());
@@ -45,7 +47,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: FirebaseAuth.instance.currentUser!=null? const MainScreen():const  LoginPage(),
+            home: FirebaseAuth.instance.currentUser != null ? const MainScreen() : const LoginPage(),
           );
         },
       ),
@@ -70,9 +72,19 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      // Timer.periodic(const Duration(seconds: 5), (va) {
+      // var details = Provider.of<PersonalDetails>(context, listen: false);
+      // var userList = Provider.of<ChatController>(context, listen: false);
+      // details.fetchUserDetails();
+      // userList.initializeUsersList();
+      // userList.initializeRecentChats();
+      // });
       var details = Provider.of<PersonalDetails>(context, listen: false);
+      var userList = Provider.of<ChatController>(context, listen: false);
       details.fetchUserDetails();
+      userList.initializeUsersList();
+      userList.initializeAllChats();
     });
     super.initState();
   }

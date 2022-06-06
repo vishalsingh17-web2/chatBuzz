@@ -23,7 +23,7 @@ class PersonalDetails extends ChangeNotifier {
     String? id,
     String? phoneNumber,
     bool? status,
-  }) {
+  }) async {
     UserDetails temp = personalDetails;
     personalDetails = UserDetails(
       name: name,
@@ -35,10 +35,13 @@ class PersonalDetails extends ChangeNotifier {
       status: status ?? temp.status,
     );
     notifyListeners();
+    await FirebaseService.updateUserInfo(name: name, bio: bio, photoUrl: profilePicture);
   }
 
   fetchUserDetails() async{
     personalDetails = await FirebaseService.getUserData();
     notifyListeners();
   }
+
+  
 }

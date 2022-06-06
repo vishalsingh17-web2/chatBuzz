@@ -1,3 +1,8 @@
+import 'package:chatbuzz/Data/models/user_details.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 class ChatData {
   String sentBy;
   String message;
@@ -6,115 +11,64 @@ class ChatData {
   bool isMe;
 
   ChatData({required this.sentBy, required this.message, required this.time, required this.avatarUrl, required this.isMe});
+
+  factory ChatData.fromJson(QueryDocumentSnapshot<Object?> json, bool isMe) {
+    return ChatData(
+      sentBy: json.get('sender'),
+      message: json['message'] as String,
+      time: json['time'] as String,
+      avatarUrl: json['avatar'] as String,
+      isMe: isMe,
+    );
+  }
+
+  factory ChatData.fromMap(Map<String, dynamic> data, bool isMe) {
+    return ChatData(
+      sentBy: data['sender'],
+      message: data['message'] as String,
+      time: data['time'] as String,
+      avatarUrl: data['avatar'] as String,
+      isMe: isMe,
+    );
+  }
 }
 
 class ConversationTile {
-  int id;
-  String name;
+  UserDetails userDetails;
   String lastMessage;
   String time;
-  String avatarUrl;
+  String lastMessageSender;
   int unreadCount;
   bool isPinnedChat;
+  Map<String, bool> pin;
+  String roomId;
 
   ConversationTile({
-    required this.id,
-    required this.name,
+    required this.userDetails,
     required this.lastMessage,
     required this.time,
-    required this.avatarUrl,
+    required this.lastMessageSender,
     required this.unreadCount,
+    required this.roomId,
+    required this.pin,
     required this.isPinnedChat,
   });
+
+  factory ConversationTile.fromMap(Map<String, dynamic> data) {
+    var friendsDetails = data['userDetails'][0]['uid'] == FirebaseAuth.instance.currentUser!.uid ? data['userDetails'][1] : data['userDetails'][0];
+    return ConversationTile(
+      userDetails: UserDetails.fromMap(friendsDetails),
+      lastMessage: data['lastMessage'],
+      time: data['lastMessageTime'],
+      roomId: data['roomId'],
+      lastMessageSender: data['lastMessageSender'],
+      unreadCount: data['unreadCount'],
+      isPinnedChat: data['isPinned'][FirebaseAuth.instance.currentUser!.email],
+      pin: {
+        FirebaseAuth.instance.currentUser!.email!: data['isPinned'][FirebaseAuth.instance.currentUser!.email],
+        friendsDetails['email']: data['isPinned'][friendsDetails['email']],
+      },
+    );
+  }
 }
 
-List<ChatData> chats = [
-  ChatData(
-    sentBy: "John Doe",
-    message:
-        "Hello guys, we have discussed about post-corona vacation plan and our decision is to go to Bali. We will have a very big party after this corona ends! These are some images about our destination ",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "Tan",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: true,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "Tan",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: true,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "Tan",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: true,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "Tan",
-    message:
-        "Hello guys, we have discussed about post-corona vacation plan and our decision is to go to Bali. We will have a very big party after this corona ends! These are some images about our destination?",
-    time: "12:00",
-    isMe: true,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "Vishal",
-    message:
-        "Hello guys, we have discussed about post-corona vacation plan and our decision is to go to Bali. We will have a very big party after this corona ends! These are some images about our destination?",
-    time: "12:00",
-    isMe: true,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message:
-        "Hello guys, we have discussed about post-corona vacation plan and our decision is to go to Bali. We will have a very big party after this corona ends! These are some images about our destination?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-  ChatData(
-    sentBy: "John Doe",
-    message: "Hey, how are you?",
-    time: "12:00",
-    isMe: false,
-    avatarUrl: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
-  ),
-];

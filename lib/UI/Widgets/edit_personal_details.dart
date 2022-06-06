@@ -87,12 +87,16 @@ toggleChatType({required BuildContext context, required ConversationTile convers
                 } else {
                   Provider.of<ChatController>(context, listen: false).pinChat(conversationTile);
                 }
+                Navigator.pop(context);
               },
               child: conversationTile.isPinnedChat ? const Text("Unpin this chat") : const Text("Pin this chat"),
             ),
             const SizedBox(height: 10),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Provider.of<ChatController>(context, listen: false).deleteRoom(roomId: conversationTile.roomId);
+                Navigator.pop(context);
+              },
               child: const Text("Delete this chat", style: TextStyle(color: Colors.red)),
             ),
           ],
@@ -100,4 +104,37 @@ toggleChatType({required BuildContext context, required ConversationTile convers
       );
     },
   );
+}
+
+deleteChat({required BuildContext context, required String time, required String roomId}) {
+  return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(5),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: const Text("Are you sure you want to delete this chat?"),
+          actions: [
+            OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            OutlinedButton(
+              onPressed: () async {
+                Provider.of<ChatController>(context, listen: false).deleteMessage(messageId: time, roomId: roomId);
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      });
 }
