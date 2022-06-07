@@ -1,5 +1,6 @@
 import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
+import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,7 @@ class _SearchScreenState extends State<SearchScreen> {
         return true;
       },
       child: Consumer2<ChatController, PersonalDetails>(
-        builder: (context, chatController,per ,child) {
+        builder: (context, chatController, per, child) {
           return Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -55,10 +56,14 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.person_add),
-                          onPressed: () {
-                            chatController.addNewChat(chatController.searchResults[index], per.personalDetails);
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await chatController.addNewChat(
+                              friendsDetail: chatController.searchResults[index],
+                              personalDetails: per.personalDetails,
+                            );
+
                             chatController.clearSearchResults();
-                            Navigator.of(context).pop();
                           },
                         ),
                       );

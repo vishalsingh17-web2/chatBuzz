@@ -7,6 +7,8 @@ import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:chatbuzz/UI/Widgets/chat_box.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:grouped_list/grouped_list.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -23,18 +25,10 @@ class _ChatScreenState extends State<ChatScreen> {
   FirebaseService firebaseService = FirebaseService();
   StreamSubscription? _subscription;
 
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.animateTo(
-        _controller.position.maxScrollExtent,
-        curve: Curves.easeOut,
-        duration: const Duration(milliseconds: 200),
-      );
-    });
-    Future.microtask(() {
-      var chats = Provider.of<ChatController>(context, listen: false);
-      var per = Provider.of<PersonalDetails>(context, listen: false);
+  eventHandler() async {
+    var chats = Provider.of<ChatController>(context, listen: false);
+    var per = Provider.of<PersonalDetails>(context, listen: false);
+    FirebaseService.createMessageCollection(roomId: widget.conversationTile.roomId).then((value) {
       _subscription = firebaseService.getChats(roomId: widget.conversationTile.roomId).listen((event) {
         if (chats.chatData.isEmpty) {
           event.docChanges.forEach((change) {
@@ -45,29 +39,33 @@ class _ChatScreenState extends State<ChatScreen> {
                   per.personalDetails.email == change.doc.data()!['sender'],
                 ),
               );
+            } else if (change.type == DocumentChangeType.removed) {
+              chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
             }
           });
         } else {
           event.docChanges.forEach((change) {
-            if (change.type == DocumentChangeType.added && per.personalDetails.email != change.doc.data()!['sender']) {
+            if (change.type == DocumentChangeType.added && per.personalDetails.email != change.doc.data()!['sender'] && change.doc.data()!['sender'] != per.personalDetails.email) {
               chats.addChatToList(
                 ChatData.fromMap(
                   change.doc.data()!,
                   false,
                 ),
               );
+            } else if (change.type == DocumentChangeType.removed && change.doc.data()!['sender'] != per.personalDetails.email) {
+              chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
             }
           });
         }
       });
-    }).then((value) {
-      _controller.animateTo(
-        _controller.position.maxScrollExtent,
-        curve: Curves.easeOut,
-        duration: const Duration(milliseconds: 200),
-      );
     });
+  }
 
+  @override
+  void initState() {
+    Future.microtask(() async {
+      await eventHandler();
+    });
     super.initState();
   }
 
@@ -115,16 +113,42 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-            body: ListView.builder(
+            body: GroupedListView<ChatData, String>(
+              sort: true,
+              order: GroupedListOrder.DESC,
+              reverse: true,
+              itemComparator: (val1, val2) => val1.time.compareTo(val2.time),
+              useStickyGroupSeparators: true,
+              floatingHeader: true,
+              groupBy: (element) => DateFormat.MMMEd().format(DateTime.parse(element.time)),
+              groupSeparatorBuilder: (value) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      margin: const EdgeInsets.only(top: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).splashColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        value.toString(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              elements: chats.chatData,
               controller: _controller,
               physics: const BouncingScrollPhysics(),
-              itemCount: chats.chatData.length,
-              itemBuilder: (context, index) {
-                if (chats.chatData.length - 1 == index) {
+              indexedItemBuilder: (context, element, index) {
+                if (index == 0) {
                   return Column(
                     children: [
                       ChatBox(
-                        chatData: chats.chatData[index],
+                        chatData: element,
                         roomId: widget.conversationTile.roomId,
                       ),
                       const SizedBox(height: 100),
@@ -132,10 +156,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   );
                 }
                 return ChatBox(
-                  chatData: chats.chatData[index],
+                  chatData: element,
                   roomId: widget.conversationTile.roomId,
                 );
-                // return Container();
               },
             ),
             bottomSheet: TextFormField(

@@ -10,13 +10,15 @@ class ChatController extends ChangeNotifier {
   List<ChatData> chatData = [];
   bool isLoading = false;
 
-  void addNewChat(UserDetails friendsDetail, UserDetails personalDetails) {
+  Future addNewChat({required UserDetails friendsDetail, required UserDetails personalDetails}) async {
     bool flag = false;
-    recentChats.forEach((element) {
-      if (element.userDetails.id == friendsDetail.id) {
+    for (int i = 0; i < recentChats.length; i++) {
+      if (recentChats[i].userDetails.email == friendsDetail.email) {
         flag = true;
+        break;
       }
-    });
+    }
+    String roomId = FirebaseService.createRoomId(friendsDetail: friendsDetail, personalDetails: personalDetails);
     if (!flag) {
       ConversationTile chat = ConversationTile(
         userDetails: friendsDetail,
@@ -24,21 +26,18 @@ class ChatController extends ChangeNotifier {
         time: " ",
         lastMessageSender: " ",
         unreadCount: 0,
-        roomId: " ",
+        roomId: roomId,
         isPinnedChat: false,
-        pin: {"": false},
+        pin: {friendsDetail.email: false, personalDetails.email: false},
       );
-      // var users = [personalDetails.email, friendsDetail.email];
-      // users.sort();
-      // String roomId = "${users[0]} _ ${users[1]}";
-      // chatData.add({roomId: []});
       recentChats.add(chat);
       notifyListeners();
-      _firebaseService.createRoom(chat, personalDetails);
+      await _firebaseService.createRoom(chat, personalDetails, roomId);
     }
   }
 
-  void initializeAllChats() async {
+  Future initializeAllChats() async {
+    clearAllChats();
     isLoading = true;
     notifyListeners();
     var chats = await _firebaseService.fetchMyRooms();
@@ -79,7 +78,7 @@ class ChatController extends ChangeNotifier {
   }
 
   List<UserDetails> usersList = [];
-  void initializeUsersList() async {
+  Future initializeUsersList() async {
     var list = await FirebaseService.getUserList();
     usersList = list;
     notifyListeners();
@@ -87,7 +86,6 @@ class ChatController extends ChangeNotifier {
 
   List<UserDetails> searchResults = [];
   void searchUser(String searchText) {
-    print(usersList.length);
     searchResults = usersList.where((element) => element.name.toLowerCase().contains(searchText.toLowerCase())).toList();
     searchResults.removeWhere((element) => element.id == _firebaseService.auth.currentUser!.uid);
     notifyListeners();
@@ -126,8 +124,8 @@ class ChatController extends ChangeNotifier {
   }
 
   void deleteMessage({required String roomId, required String messageId}) async {
-    for(int i=0;i<chatData.length;i++){
-      if(chatData[i].time == messageId){
+    for (int i = 0; i < chatData.length; i++) {
+      if (chatData[i].time == messageId) {
         chatData.removeAt(i);
         notifyListeners();
         break;
@@ -138,8 +136,27 @@ class ChatController extends ChangeNotifier {
     initializeAllChats();
   }
 
+  void deleteMessageLocally({required String messageId}) async {
+    for (int i = 0; i < chatData.length; i++) {
+      if (chatData[i].time == messageId) {
+        chatData.removeAt(i);
+        notifyListeners();
+        break;
+      }
+    }
+  }
+
   deleteRoom({required String roomId}) async {
     await _firebaseService.deleteChatRoom(roomId: roomId);
+    clearAllChats();
+    initializeAllChats();
+  }
+
+  deleteChatForMe({required String roomId, required ConversationTile tile}) async {
+    isLoading = true;
+    notifyListeners();
+    await _firebaseService.updateRoomInfo(roomId: roomId, tile: tile);
+    isLoading = false;
     clearAllChats();
     initializeAllChats();
   }

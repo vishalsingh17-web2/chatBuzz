@@ -38,43 +38,18 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
       ),
       trailing: !widget.conversationTile.isPinnedChat
           ? Text(
-              widget.conversationTile.time == "" ? "" : DateFormat.jm().format(DateTime.parse(widget.conversationTile.time)),
+              widget.conversationTile.time == "" || widget.conversationTile.time == " " ? "" : DateFormat.jm().format(DateTime.parse(widget.conversationTile.time)),
               style: TextStyle(
                 color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
                 fontSize: 10,
               ),
             )
-
-          // Column(
-          //     children: [
-
-          //       Container(
-          //         margin: const EdgeInsets.only(top: 5),
-          //         height: 20,
-          //         width: 20,
-          //         alignment: Alignment.center,
-          //         decoration: BoxDecoration(
-          //           color: widget.conversationTile.unreadCount != 0 ? Colors.blue : Colors.transparent,
-          //           shape: BoxShape.circle,
-          //         ),
-          //         child: widget.conversationTile.unreadCount != 0
-          //             ? Text(
-          //                 widget.conversationTile.unreadCount.toString(),
-          //                 style: const TextStyle(
-          //                   color: Colors.white,
-          //                   fontSize: 10,
-          //                 ),
-          //               )
-          //             : null,
-          //       )
-          //     ],
-          //   )
           : null,
       tileColor: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF2F2F2) : Colors.black,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
-      subtitle: widget.conversationTile.lastMessage == ""
+      subtitle: widget.conversationTile.lastMessage == "" || widget.conversationTile.lastMessage == " "
           ? null
           : Text(
               widget.conversationTile.lastMessage,

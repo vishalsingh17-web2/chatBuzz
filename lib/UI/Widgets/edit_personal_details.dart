@@ -94,7 +94,7 @@ toggleChatType({required BuildContext context, required ConversationTile convers
             const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Provider.of<ChatController>(context, listen: false).deleteRoom(roomId: conversationTile.roomId);
+                Provider.of<ChatController>(context, listen: false).deleteChatForMe(roomId: conversationTile.roomId, tile: conversationTile);
                 Navigator.pop(context);
               },
               child: const Text("Delete this chat", style: TextStyle(color: Colors.red)),

@@ -89,15 +89,21 @@ class FirebaseService {
     return userList;
   }
 
-  Future createRoom(ConversationTile tile, UserDetails currentUser) async {
+  static createRoomId({required UserDetails friendsDetail, required UserDetails personalDetails}) {
+    List<String> users = [friendsDetail.email, personalDetails.email];
+    users.sort();
+    String roomId = "${users[0]} _ ${users[1]}";
+    return roomId;
+  }
+
+  Future createRoom(ConversationTile tile, UserDetails currentUser, String roomId) async {
     print('creating room');
     var user = auth.currentUser!;
     if (user.email == tile.userDetails.email) {
-      return;
+      return null;
     }
-    List<String> users = [user.email!, tile.userDetails.email];
-    users.sort();
-    String roomId = "${users[0]} _ ${users[1]}";
+    List<String> authors = [tile.userDetails.email, currentUser.email];
+    print(roomId);
     await chats.doc(roomId).set({
       'isPinned': {tile.userDetails.email: false, currentUser.email: false},
       'userDetails': [
@@ -105,7 +111,7 @@ class FirebaseService {
         UserDetails.fromUserDetails(currentUser),
       ],
       'roomId': roomId,
-      'users': users,
+      'users': authors,
       'lastMessage': '',
       'lastMessageTime': '',
       'lastMessageSender': '',
@@ -150,6 +156,8 @@ class FirebaseService {
     required avatarUrl,
     required String date,
   }) async {
+    print('adding chat');
+    print(roomId);
     await chats.doc(roomId).update({
       'lastMessage': message,
       'lastMessageTime': date,
@@ -163,8 +171,16 @@ class FirebaseService {
     });
   }
 
+  static Stream<QuerySnapshot<Object?>> streamForChatRooms() {
+     return chats.snapshots().asBroadcastStream();
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> getChats({required String roomId}) {
-    return chats.doc(roomId).collection('messages').orderBy('time', descending: false).snapshots().asBroadcastStream();
+    return chats.doc(roomId).collection('messages').snapshots().asBroadcastStream();
+  }
+
+  static Future createMessageCollection({required String roomId}) async {
+    await chats.doc(roomId).collection('messages').get();
   }
 
   getChatToShow({required String roomId}) async {
@@ -179,7 +195,18 @@ class FirebaseService {
   }
 
   deleteChatRoom({required String roomId}) async {
+    await chats.doc(roomId).collection('messages').get().then((value) {
+      value.docs.forEach((element) {
+        element.reference.delete();
+      });
+    });
     await chats.doc(roomId).delete();
+  }
+
+  updateRoomInfo({required String roomId, required ConversationTile tile}) async {
+    await chats.doc(roomId).update({
+      'users': [tile.userDetails.email]
+    });
   }
 
   deleteMessage({required String roomId, required String time}) async {

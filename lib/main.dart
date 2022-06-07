@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeController>(
         builder: (context, theme, child) {
           return MaterialApp(
-            title: 'Flutter Demo',
+            title: 'ChatBuzz',
             debugShowCheckedModeBanner: false,
             darkTheme: ThemeData(brightness: Brightness.dark),
             themeMode: theme.selectedtheme,
@@ -73,13 +73,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      // Timer.periodic(const Duration(seconds: 5), (va) {
-      // var details = Provider.of<PersonalDetails>(context, listen: false);
-      // var userList = Provider.of<ChatController>(context, listen: false);
-      // details.fetchUserDetails();
-      // userList.initializeUsersList();
-      // userList.initializeRecentChats();
-      // });
       var details = Provider.of<PersonalDetails>(context, listen: false);
       var userList = Provider.of<ChatController>(context, listen: false);
       details.fetchUserDetails();
