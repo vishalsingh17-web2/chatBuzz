@@ -80,7 +80,7 @@ class _SettingState extends State<Setting> {
                           ),
                         ),
                         const SizedBox(height: 5),
-                        Container(
+                        SizedBox(
                           width: 200,
                           child: InkWell(
                             onTap: () {

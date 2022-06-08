@@ -4,8 +4,10 @@ import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/Data/models/chat_data_model.dart';
+import 'package:chatbuzz/UI/Pages/profile_screen.dart';
 import 'package:chatbuzz/UI/Widgets/chat_box.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
@@ -82,9 +84,40 @@ class _ChatScreenState extends State<ChatScreen> {
         builder: (context, chats, pers, child) {
           return Scaffold(
             appBar: AppBar(
+              actions: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).splashColor,
+                  ),
+                  child: IconButton(onPressed: () {}, icon: Icon(Icons.call, color: Theme.of(context).iconTheme.color)),
+                ),
+                const SizedBox(width: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).splashColor,
+                  ),
+                  child: IconButton(onPressed: () {}, icon: Icon(Icons.videocam, color: Theme.of(context).iconTheme.color)),
+                ),
+                const SizedBox(width: 20),
+              ],
               elevation: 0,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              title: Text(widget.conversationTile.userDetails.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white)),
+              title: InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => ProfileScreen(tile: widget.conversationTile),
+                  ),
+                ),
+                child: Text(
+                  widget.conversationTile.userDetails.name,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                  ),
+                ),
+              ),
               leadingWidth: 40,
               leading: InkWell(
                 onTap: () => Navigator.push(

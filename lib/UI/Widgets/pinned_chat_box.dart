@@ -71,18 +71,18 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
               ),
             ),
           ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: 10,
-              width: 10,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.lightGreen,
-              ),
-            ),
-          )
+          // Positioned(
+          //   right: 0,
+          //   bottom: 0,
+          //   child: Container(
+          //     height: 10,
+          //     width: 10,
+          //     decoration: const BoxDecoration(
+          //       shape: BoxShape.circle,
+          //       color: Colors.lightGreen,
+          //     ),
+          //   ),
+          // )
         ],
       ),
     );

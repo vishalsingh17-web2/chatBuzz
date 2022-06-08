@@ -3,7 +3,6 @@ import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:flutter/cupertino.dart';
 
 class PersonalDetails extends ChangeNotifier {
-  FirebaseService _firebaseService = FirebaseService();
 
   UserDetails personalDetails = UserDetails(
     name: "Vishal Singh",

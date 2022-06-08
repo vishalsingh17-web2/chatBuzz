@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:chatbuzz/Controller/chat_controller.dart';
+import 'package:chatbuzz/Controller/group_controller.dart';
 import 'package:chatbuzz/Controller/login_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Controller/theme_controller.dart';
-import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/UI/Pages/call_page.dart';
 import 'package:chatbuzz/UI/Pages/homescreen.dart';
 import 'package:chatbuzz/UI/Pages/login_page.dart';
@@ -35,6 +33,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => LoginController()),
         ChangeNotifierProvider(create: (_) => PersonalDetails()),
+        ChangeNotifierProvider(create: (_) => GroupController()),
       ],
       child: Consumer<ThemeController>(
         builder: (context, theme, child) {
@@ -75,9 +74,12 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       var details = Provider.of<PersonalDetails>(context, listen: false);
       var userList = Provider.of<ChatController>(context, listen: false);
+      var groupList = Provider.of<GroupController>(context, listen: false);
       details.fetchUserDetails();
       userList.initializeUsersList();
       userList.initializeAllChats();
+      groupList.initializeGroupList();
+      groupList.initializeRequestToJoinGroup();
     });
     super.initState();
   }

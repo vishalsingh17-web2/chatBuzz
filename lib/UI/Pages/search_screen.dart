@@ -1,6 +1,5 @@
 import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
-import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

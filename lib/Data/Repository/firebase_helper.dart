@@ -1,4 +1,5 @@
 import 'package:chatbuzz/Data/models/chat_data_model.dart';
+import 'package:chatbuzz/Data/models/group_tile.dart';
 import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,6 +24,8 @@ class FirebaseService {
       await saveUserInfo();
     } on FirebaseAuthException catch (e) {
       print(e.code);
+    } catch (e) {
+      print(e.toString());
     }
   }
 
@@ -97,13 +100,11 @@ class FirebaseService {
   }
 
   Future createRoom(ConversationTile tile, UserDetails currentUser, String roomId) async {
-    print('creating room');
     var user = auth.currentUser!;
     if (user.email == tile.userDetails.email) {
       return null;
     }
     List<String> authors = [tile.userDetails.email, currentUser.email];
-    print(roomId);
     await chats.doc(roomId).set({
       'isPinned': {tile.userDetails.email: false, currentUser.email: false},
       'userDetails': [
@@ -156,8 +157,6 @@ class FirebaseService {
     required avatarUrl,
     required String date,
   }) async {
-    print('adding chat');
-    print(roomId);
     await chats.doc(roomId).update({
       'lastMessage': message,
       'lastMessageTime': date,
@@ -171,9 +170,7 @@ class FirebaseService {
     });
   }
 
-  static Stream<QuerySnapshot<Object?>> streamForChatRooms() {
-     return chats.snapshots().asBroadcastStream();
-  }
+  
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getChats({required String roomId}) {
     return chats.doc(roomId).collection('messages').snapshots().asBroadcastStream();
@@ -214,6 +211,55 @@ class FirebaseService {
       value.docs.forEach((element) {
         element.reference.delete();
       });
+    });
+  }
+
+  // Group Function are defined below
+  Future<List<GroupTile>> fetchRequestList() async {
+    QuerySnapshot querySnapshot = await groups.where('pendingUsers', arrayContains: auth.currentUser!.email).get();
+    List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
+    List<GroupTile> requests = [];
+    for (int i = 0; i < data.length; i++) {
+      requests.add(GroupTile.fromMap(data[i]));
+    }
+    return requests;
+  }
+
+  fetchGroupList() async {
+    QuerySnapshot querySnapshot = await groups.where('joinedUsers', arrayContains: auth.currentUser!.email).get();
+    List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
+    List<GroupTile> joinedUsers = [];
+
+    for (int i = 0; i < data.length; i++) {
+      joinedUsers.add(GroupTile.fromMap(data[i]));
+    }
+    return joinedUsers;
+  }
+
+  static createGroupId({required List<String> users, required String groupName}) {
+    users.sort();
+    String roomId = "$groupName-${users.join('_')}";
+    return roomId;
+  }
+
+  static createGroup({required GroupTile tile}) async {
+    String roomId = createGroupId(users: tile.pendingUsers + tile.joinedUsers, groupName: tile.groupName);
+    tile.roomId = roomId;
+    await groups.doc(roomId).set(GroupTile.fromGroupTile(tile));
+  }
+
+  joinGroup({required GroupTile tile}) async {
+    await groups.doc(tile.roomId).update({
+      'joinedUsers': FieldValue.arrayUnion([auth.currentUser!.email!]),
+      'pendingUsers': FieldValue.arrayRemove([auth.currentUser!.email!])
+    });
+  }
+
+  deleteGroupRequest({required GroupTile tile}) async {
+    await groups.doc(tile.roomId).update({
+      'pendingUsers': FieldValue.arrayRemove([auth.currentUser!.email!])
     });
   }
 }

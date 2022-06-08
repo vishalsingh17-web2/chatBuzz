@@ -7,6 +7,7 @@ class ChatController extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
   List<ConversationTile> pinnedChats = [];
   List<ConversationTile> recentChats = [];
+  List<ConversationTile> allChats = [];
   List<ChatData> chatData = [];
   bool isLoading = false;
 
@@ -31,6 +32,7 @@ class ChatController extends ChangeNotifier {
         pin: {friendsDetail.email: false, personalDetails.email: false},
       );
       recentChats.add(chat);
+      allChats.add(chat);
       notifyListeners();
       await _firebaseService.createRoom(chat, personalDetails, roomId);
     }
@@ -50,10 +52,12 @@ class ChatController extends ChangeNotifier {
       // chatData.add({chats[i].roomId: []});
     }
     isLoading = false;
+    allChats = pinnedChats + recentChats;
     notifyListeners();
   }
 
   clearAllChats() {
+    allChats.clear();
     pinnedChats.clear();
     recentChats.clear();
     notifyListeners();

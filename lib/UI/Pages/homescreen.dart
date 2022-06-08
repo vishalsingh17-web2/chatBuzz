@@ -1,11 +1,8 @@
 import 'dart:async';
 
 import 'package:chatbuzz/Controller/chat_controller.dart';
-import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/UI/Pages/search_screen.dart';
 import 'package:chatbuzz/UI/Widgets/pinned_chat_box.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
