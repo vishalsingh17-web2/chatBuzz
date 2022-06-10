@@ -16,22 +16,6 @@ class ChatBox extends StatelessWidget {
         mainAxisAlignment: chatData.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // !chatData.isMe
-          //     ? Container(
-          //         margin: const EdgeInsets.symmetric(horizontal: 5),
-          //         width: 40,
-          //         height: 40,
-          //         decoration: BoxDecoration(
-          //           shape: BoxShape.circle,
-          //           image: DecorationImage(
-          //             image: NetworkImage(
-          //               chatData.avatarUrl,
-          //             ),
-          //             fit: BoxFit.fill,
-          //           ),
-          //         ),
-          //       )
-          //     : Container(),
           chatData.isMe
               ? Container(
                 width: MediaQuery.of(context).size.width * 0.75,
@@ -39,7 +23,7 @@ class ChatBox extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onLongPress: () {
-                    deleteChat(context: context, time: chatData.time, roomId: roomId);
+                    deleteChat(context: context, time: chatData.time.toString(), roomId: roomId);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),
@@ -62,7 +46,7 @@ class ChatBox extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyText1,
                           ),
                           TextSpan(
-                            text: DateFormat.jm().format(DateTime.parse(chatData.time)),
+                            text: DateFormat.jm().format(chatData.time),
                             style: Theme.of(context).textTheme.caption!.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
@@ -100,7 +84,7 @@ class ChatBox extends StatelessWidget {
                           ),
                           TextSpan(
                             spellOut: true,
-                            text: DateFormat.jm().format(DateTime.parse(chatData.time)),
+                            text: DateFormat.jm().format(chatData.time),
                             style: Theme.of(context).textTheme.caption!.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,

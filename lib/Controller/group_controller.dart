@@ -1,4 +1,5 @@
 import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
+import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:chatbuzz/Data/models/group_tile.dart';
 import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,8 @@ import 'package:flutter/material.dart';
 
 class GroupController extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
+
+  List<GroupChatData> chatList = [];
   List<UserDetails> selectedUsers = [];
   List<GroupTile> groupList = [];
   List<GroupTile> requestsList = [];
@@ -28,17 +31,17 @@ class GroupController extends ChangeNotifier {
   Future<bool> createGroup({required List<UserDetails> tile, required String groupName, required UserDetails currentUser}) async {
     GroupTile data = GroupTile(
       userDetailsList: tile,
-      joinedUsers: [currentUser.email],
-      pendingUsers: tile.map((e) => e.email).toList(),
+      joinedUsers: [currentUser],
+      pendingUsers: tile,
       createdBy: currentUser,
       groupName: groupName,
       lastMessage: '',
-      lastMessagetime: '',
+      lastMessagetime: DateTime.now(),
       lastMessageSender: '',
       roomId: '',
     );
     String id = FirebaseService.createGroupId(
-      users: tile.map((e) => e.email).toList() + [currentUser.email],
+      users: tile + [currentUser],
       groupName: groupName,
     );
     bool check = groupList.every((element) => element.roomId != id);
@@ -52,29 +55,50 @@ class GroupController extends ChangeNotifier {
     }
   }
 
-  initializeRequestToJoinGroup() async {
-    List<GroupTile> data = await  _firebaseService.fetchRequestList();
+  Future initializeRequestToJoinGroup({required UserDetails personal}) async {
+    List<GroupTile> data = await _firebaseService.fetchRequestList(personal: personal);
     requestsList = data;
     notifyListeners();
   }
 
-  initializeGroupList() async {
-    groupList = await _firebaseService.fetchGroupList();
+  Future initializeGroupList({required UserDetails personal}) async {
+    groupList = await _firebaseService.fetchGroupList(personal: personal);
     notifyListeners();
   }
 
-  joinGroup({required GroupTile tile}) async {
+  Future joinGroup({required GroupTile tile, required UserDetails personalDetails}) async {
     requestsList.removeWhere((element) => element.roomId == tile.roomId);
-    tile.pendingUsers.removeWhere((element) => element == FirebaseAuth.instance.currentUser!.email);
-    tile.joinedUsers.add(FirebaseAuth.instance.currentUser!.email!);
+    tile.pendingUsers.removeWhere((element) => element.email == FirebaseAuth.instance.currentUser!.email);
+    tile.joinedUsers.add(personalDetails);
     groupList.add(tile);
     notifyListeners();
-    await _firebaseService.joinGroup(tile: tile);
+    await _firebaseService.joinGroup(tile: tile, personalDetails: personalDetails);
   }
 
-  deleteGroupRequest({required GroupTile tile}) async {
+  Future deleteGroupRequest({required GroupTile tile, required UserDetails personalDetails}) async {
     requestsList.removeWhere((element) => element.roomId == tile.roomId);
     notifyListeners();
-    await _firebaseService.deleteGroupRequest(tile: tile);
+    await _firebaseService.deleteGroupRequest(tile: tile, personalDetails: personalDetails);
+  }
+
+  sendMessage({required GroupTile tile, required GroupChatData data}) async {
+    chatList.add(data);
+    notifyListeners();
+    await _firebaseService.sendMessageInGroup(tile: tile, message: data);
+  }
+
+  addChatToGroup({required GroupChatData data}) {
+    chatList.add(data);
+    notifyListeners();
+  }
+
+  deleteMessageFromGroup({required GroupChatData data}) {
+    chatList.removeWhere((element) => element.time == data.time && data.isMe);
+    notifyListeners();
+  }
+
+  clearChatList() {
+    chatList.clear();
+    notifyListeners();
   }
 }

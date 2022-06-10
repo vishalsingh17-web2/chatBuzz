@@ -24,7 +24,7 @@ class ChatController extends ChangeNotifier {
       ConversationTile chat = ConversationTile(
         userDetails: friendsDetail,
         lastMessage: " ",
-        time: " ",
+        time: DateTime.now(),
         lastMessageSender: " ",
         unreadCount: 0,
         roomId: roomId,
@@ -106,7 +106,7 @@ class ChatController extends ChangeNotifier {
       message: message,
       roomId: roomId,
       avatarUrl: avatar,
-      date: DateTime.now().toString(),
+      date: DateTime.now(),
     );
     clearAllChats();
     initializeAllChats();

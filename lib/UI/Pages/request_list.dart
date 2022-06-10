@@ -1,4 +1,5 @@
 import 'package:chatbuzz/Controller/group_controller.dart';
+import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -29,8 +30,8 @@ class RequestList extends StatelessWidget {
         builder: (context, groups, child) {
           return RefreshIndicator(
             onRefresh: () async {
-              await groups.initializeGroupList();
-              await groups.initializeRequestToJoinGroup();
+              var details = Provider.of<PersonalDetails>(context, listen: false);
+              await groups.initializeRequestToJoinGroup(personal: details.personalDetails);
             },
             child: ListView.builder(
               itemCount: groups.requestsList.length,
@@ -146,37 +147,41 @@ class RequestList extends StatelessWidget {
                         },
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 3,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              groups.joinGroup(tile: groups.requestsList[index]);
-                            },
-                            child: const Text(
-                              "Join",
-                              style: TextStyle(),
+                    Consumer<PersonalDetails>(
+                      builder: (context, personalDetails, child) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  groups.joinGroup(tile: groups.requestsList[index], personalDetails: personalDetails.personalDetails);
+                                },
+                                child: const Text(
+                                  "Join",
+                                  style: TextStyle(),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 3,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              primary: Colors.red,
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 3,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  primary: Colors.red,
+                                ),
+                                onPressed: () {
+                                  groups.deleteGroupRequest(tile: groups.requestsList[index], personalDetails: personalDetails.personalDetails);
+                                },
+                                child: const Text(
+                                  "Delete",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
                             ),
-                            onPressed: () {
-                              groups.deleteGroupRequest(tile: groups.requestsList[index]);
-                            },
-                            child: const Text(
-                              "Delete",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 20)
                   ],

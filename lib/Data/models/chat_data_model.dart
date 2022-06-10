@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class ChatData {
   String sentBy;
   String message;
-  String time;
+  DateTime time;
   String avatarUrl;
   bool isMe;
 
@@ -15,7 +17,7 @@ class ChatData {
     return ChatData(
       sentBy: json.get('sender'),
       message: json['message'] as String,
-      time: json['time'] as String,
+      time: json['time'].toDate(),
       avatarUrl: json['avatar'] as String,
       isMe: isMe,
     );
@@ -25,7 +27,7 @@ class ChatData {
     return ChatData(
       sentBy: data['sender'],
       message: data['message'] as String,
-      time: data['time'] as String,
+      time: data['time'].toDate(),
       avatarUrl: data['avatar'] as String,
       isMe: isMe,
     );
@@ -35,7 +37,7 @@ class ChatData {
 class ConversationTile {
   UserDetails userDetails;
   String lastMessage;
-  String time;
+  DateTime time;
   String lastMessageSender;
   int unreadCount;
   bool isPinnedChat;
@@ -58,7 +60,7 @@ class ConversationTile {
     return ConversationTile(
       userDetails: UserDetails.fromMap(friendsDetails),
       lastMessage: data['lastMessage'],
-      time: data['lastMessageTime'],
+      time: data['lastMessageTime'].toDate(),
       roomId: data['roomId'],
       lastMessageSender: data['lastMessageSender'],
       unreadCount: data['unreadCount'],
@@ -71,3 +73,44 @@ class ConversationTile {
   }
 }
 
+class GroupChatData {
+  String sentByEmail;
+  String sendersName;
+  String message;
+  DateTime time;
+  String avatarUrl;
+  bool isMe;
+
+  GroupChatData({required this.sentByEmail, required this.sendersName, required this.message, required this.time, required this.avatarUrl, required this.isMe});
+
+  factory GroupChatData.fromJson(QueryDocumentSnapshot<Object?> json, bool isMe) {
+    return GroupChatData(
+      sentByEmail: json.get('senderEmail'),
+      message: json['message'] as String,
+      sendersName: json['sendersName'] as String,
+      time: json['time'].toDate(),
+      avatarUrl: json['avatar'] as String,
+      isMe: isMe,
+    );
+  }
+
+  factory GroupChatData.fromMap(Map<String, dynamic> data, bool isMe) {
+    return GroupChatData(
+      sendersName: data['sendersName'],
+      sentByEmail: data['senderEmail'],
+      message: data['message'] as String,
+      time: data['time'].toDate(),
+      avatarUrl: data['avatar'] as String,
+      isMe: isMe,
+    );
+  }
+  static fromGroupChatData(GroupChatData groupChatData) {
+    return {
+      'senderEmail': groupChatData.sentByEmail,
+      'message': groupChatData.message,
+      'time': groupChatData.time,
+      'avatar': groupChatData.avatarUrl,
+      'sendersName': groupChatData.sendersName,
+    };
+  }
+}

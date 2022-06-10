@@ -17,19 +17,19 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onLongPress: () {
-        toggleChatType(context: context, conversationTile: widget.conversationTile);
-      },
-      onTap: () {
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => ChatScreen(
-              conversationTile: widget.conversationTile,
-            ),
-          ),
-        );
-      },
+      // onLongPress: () {
+      //   toggleChatType(context: context, conversationTile: widget.conversationTile);
+      // },
+      // onTap: () {
+      //   Navigator.push(
+      //     context,
+      //     CupertinoPageRoute(
+      //       builder: (context) => ChatScreen(
+      //         conversationTile: widget.conversationTile,
+      //       ),
+      //     ),
+      //   );
+      // },
       autofocus: true,
       dense: widget.conversationTile.isPinnedChat,
       title: Text(
@@ -38,14 +38,18 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
       ),
       trailing: !widget.conversationTile.isPinnedChat
           ? Text(
-              widget.conversationTile.time == "" || widget.conversationTile.time == " " ? "" : DateFormat.jm().format(DateTime.parse(widget.conversationTile.time)),
+              widget.conversationTile.time == "" || widget.conversationTile.time == " " ? "" : DateFormat.jm().format(widget.conversationTile.time),
               style: TextStyle(
                 color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
                 fontSize: 10,
               ),
             )
           : null,
-      tileColor: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF2F2F2) : Colors.black,
+      tileColor: widget.conversationTile.isPinnedChat
+          ? Theme.of(context).brightness == Brightness.dark
+              ? Colors.black
+              : Theme.of(context).splashColor.withOpacity(0.2)
+          : Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),

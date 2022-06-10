@@ -23,7 +23,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   TextEditingController message = TextEditingController();
-  final ScrollController _controller = ScrollController();
+
   FirebaseService firebaseService = FirebaseService();
   StreamSubscription? _subscription;
 
@@ -63,186 +63,186 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  @override
-  void initState() {
-    Future.microtask(() async {
-      await eventHandler();
-    });
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   Future.microtask(() async {
+  //     await eventHandler();
+  //   });
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        _controller.dispose();
-        _subscription!.cancel();
-        Provider.of<ChatController>(context, listen: false).clearChatData();
-        return true;
-      },
-      child: Consumer2<ChatController, PersonalDetails>(
-        builder: (context, chats, pers, child) {
-          return Scaffold(
-            appBar: AppBar(
-              actions: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).splashColor,
-                  ),
-                  child: IconButton(onPressed: () {}, icon: Icon(Icons.call, color: Theme.of(context).iconTheme.color)),
+    return Consumer2<ChatController, PersonalDetails>(
+      builder: (context, chats, pers, child) {
+        return Scaffold(
+          appBar: AppBar(
+            actions: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).splashColor,
                 ),
-                const SizedBox(width: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).splashColor,
-                  ),
-                  child: IconButton(onPressed: () {}, icon: Icon(Icons.videocam, color: Theme.of(context).iconTheme.color)),
+                child: IconButton(onPressed: () {}, icon: Icon(Icons.call, color: Theme.of(context).iconTheme.color)),
+              ),
+              const SizedBox(width: 20),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).splashColor,
                 ),
-                const SizedBox(width: 20),
-              ],
-              elevation: 0,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              title: InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) => ProfileScreen(tile: widget.conversationTile),
-                  ),
+                child: IconButton(onPressed: () {}, icon: Icon(Icons.videocam, color: Theme.of(context).iconTheme.color)),
+              ),
+              const SizedBox(width: 20),
+            ],
+            elevation: 0,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            title: InkWell(
+              onTap: () => Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => ProfileScreen(tile: widget.conversationTile),
                 ),
-                child: Text(
-                  widget.conversationTile.userDetails.name,
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+              ),
+              child: Text(
+                widget.conversationTile.userDetails.name,
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                ),
+              ),
+            ),
+            leadingWidth: 40,
+            leading: InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileImage(
+                    link: widget.conversationTile.userDetails.profilePicture,
                   ),
                 ),
               ),
-              leadingWidth: 40,
-              leading: InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileImage(
-                      link: widget.conversationTile.userDetails.profilePicture,
-                    ),
-                  ),
-                ),
-                child: Hero(
-                  tag: "ProfilePic",
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 10),
-                    height: 20,
-                    width: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          widget.conversationTile.userDetails.profilePicture,
-                        ),
+              child: Hero(
+                tag: "ProfilePic",
+                child: Container(
+                  margin: const EdgeInsets.only(left: 10),
+                  height: 20,
+                  width: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        widget.conversationTile.userDetails.profilePicture,
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-            body: GroupedListView<ChatData, String>(
-              sort: true,
-              order: GroupedListOrder.DESC,
-              reverse: true,
-              itemComparator: (val1, val2) => val1.time.compareTo(val2.time),
-              useStickyGroupSeparators: true,
-              floatingHeader: true,
-              groupBy: (element) => DateFormat.MMMEd().format(DateTime.parse(element.time)),
-              groupSeparatorBuilder: (value) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(5),
-                      margin: const EdgeInsets.only(top: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).splashColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        value.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                );
-              },
-              elements: chats.chatData,
-              controller: _controller,
-              physics: const BouncingScrollPhysics(),
-              indexedItemBuilder: (context, element, index) {
-                if (index == 0) {
-                  return Column(
-                    children: [
-                      ChatBox(
-                        chatData: element,
-                        roomId: widget.conversationTile.roomId,
-                      ),
-                      const SizedBox(height: 100),
-                    ],
+          ),
+          body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: firebaseService.getChats(roomId: widget.conversationTile.roomId),
+              builder: (context, snapshot) {
+                if (snapshot.data == null) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
                   );
                 }
-                return ChatBox(
-                  chatData: element,
-                  roomId: widget.conversationTile.roomId,
-                );
-              },
-            ),
-            bottomSheet: TextFormField(
-              controller: message,
-              maxLines: 2,
-              decoration: InputDecoration(
-                hintText: 'Type a message',
-                contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.light ? Colors.grey[200] : Colors.grey[900],
-                suffixIcon: IconButton(
-                  onPressed: () async {
-                    if (message.text.isNotEmpty) {
-                      String temp = message.text;
-                      message.clear();
-                      var chats = Provider.of<ChatController>(context, listen: false);
-                      chats.addChatToList(
-                        ChatData(
-                          sentBy: pers.personalDetails.email,
-                          message: temp,
-                          time: DateTime.now().toString(),
-                          avatarUrl: pers.personalDetails.profilePicture,
-                          isMe: true,
+                return GroupedListView<ChatData, String>(
+                  // sort: true,
+                  // order: GroupedListOrder.ASC,
+                  // itemComparator: (val2, val1) => DateTime.parse(val1.time).compareTo(DateTime.parse(val2.time)),
+                  elements: FirebaseService.mapDataToChat(data: snapshot.data!.docs),
+                  reverse: true,
+                  useStickyGroupSeparators: true,
+                  floatingHeader: true,
+                  groupBy: (element) => DateFormat.MMMEd().format(element.time),
+                  groupSeparatorBuilder: (value) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          margin: const EdgeInsets.only(top: 10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).splashColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            value.toString(),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      );
-                      await chats.sendMessage(
-                        message: temp,
-                        roomId: widget.conversationTile.roomId,
-                        sentBy: pers.personalDetails.email,
-                        avatar: pers.personalDetails.profilePicture,
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Message cannot be empty'),
-                          backgroundColor: Theme.of(context).errorColor,
-                        ),
+                      ],
+                    );
+                  },
+                  physics: const BouncingScrollPhysics(),
+                  indexedItemBuilder: (context, element, index) {
+                    if (index == 0) {
+                      return Column(
+                        children: [
+                          ChatBox(
+                            chatData: element,
+                            roomId: widget.conversationTile.roomId,
+                          ),
+                          const SizedBox(height: 100),
+                        ],
                       );
                     }
+                    return ChatBox(
+                      chatData: element,
+                      roomId: widget.conversationTile.roomId,
+                    );
                   },
-                  icon: const Icon(Icons.send),
-                ),
+                );
+              }),
+          bottomSheet: TextFormField(
+            controller: message,
+            maxLines: 2,
+            decoration: InputDecoration(
+              hintText: 'Type a message',
+              contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.light ? Colors.grey[200] : Colors.grey[900],
+              suffixIcon: IconButton(
+                onPressed: () async {
+                  if (message.text.isNotEmpty) {
+                    String temp = message.text;
+                    message.clear();
+                    var chats = Provider.of<ChatController>(context, listen: false);
+                    chats.addChatToList(
+                      ChatData(
+                        sentBy: pers.personalDetails.email,
+                        message: temp,
+                        time: DateTime.now(),
+                        avatarUrl: pers.personalDetails.profilePicture,
+                        isMe: true,
+                      ),
+                    );
+                    await chats.sendMessage(
+                      message: temp,
+                      roomId: widget.conversationTile.roomId,
+                      sentBy: pers.personalDetails.email,
+                      avatar: pers.personalDetails.profilePicture,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Message cannot be empty'),
+                        backgroundColor: Theme.of(context).errorColor,
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.send),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

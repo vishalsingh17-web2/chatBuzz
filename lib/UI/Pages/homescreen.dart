@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:animations/animations.dart';
 import 'package:chatbuzz/Controller/chat_controller.dart';
+import 'package:chatbuzz/UI/Pages/chat_screen.dart';
 import 'package:chatbuzz/UI/Pages/search_screen.dart';
+import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
 import 'package:chatbuzz/UI/Widgets/pinned_chat_box.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,9 +22,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<ChatController>(
       builder: (context, chats, child) {
-        if (chats.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+        if (chats.isLoading || chats.allChats.isEmpty) {
+          return Center(
+            child: Lottie.asset(
+              'assets/animations/loading.json',
+              width: 100,
+              height: 100,
+            ),
           );
         }
         return SafeArea(
@@ -31,10 +39,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: ListTile(
-                      title: const Text("Search People"),
+                      title: const Text(
+                        "Search People",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       trailing: InkWell(
                         onTap: () {
-                          Navigator.of(context).push(
+                          print("Searching");
+                          Navigator.push(
+                            context,
                             MaterialPageRoute(
                               builder: (context) => const SearchScreen(),
                             ),
@@ -74,8 +87,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           childAspectRatio: 2,
                         ),
                         itemBuilder: (context, index) {
-                          return PinnedChatBox(
-                            conversationTile: chats.pinnedChats[index],
+                          return InkWell(
+                            onLongPress: () {
+                              toggleChatType(context: context, conversationTile: chats.pinnedChats[index]);
+                            },
+                            child: OpenContainer(
+                              closedElevation: 0,
+                              closedColor: Theme.of(context).scaffoldBackgroundColor,
+                              closedBuilder: ((context, action) {
+                                return PinnedChatBox(
+                                  conversationTile: chats.pinnedChats[index],
+                                );
+                              }),
+                              openBuilder: (context, action) {
+                                return ChatScreen(
+                                  conversationTile: chats.pinnedChats[index],
+                                );
+                              },
+                            ),
                           );
                         },
                         itemCount: chats.pinnedChats.length,
@@ -103,14 +132,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                 height: MediaQuery.of(context).size.height * 0.9,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Center(
+                                  children: [
+                                    const Center(
                                       child: Text(
                                         "No Recent Chats\nStart a conversation\nby searching for a user",
                                         style: TextStyle(fontSize: 20),
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const SearchScreen(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text("Search People"),
+                                    )
                                   ],
                                 ),
                               ),
@@ -160,13 +200,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                                         ),
                                       ),
-                                      PinnedChatBox(
-                                        conversationTile: chats.recentChats[index],
+                                      InkWell(
+                                        onLongPress: () {
+                                          toggleChatType(context: context, conversationTile: chats.recentChats[index]);
+                                        },
+                                        child: OpenContainer(
+                                          closedElevation: 0,
+                                          closedColor: Theme.of(context).scaffoldBackgroundColor,
+                                          closedBuilder: ((context, action) {
+                                            return PinnedChatBox(
+                                              conversationTile: chats.recentChats[index],
+                                            );
+                                          }),
+                                          openBuilder: (context, action) {
+                                            return ChatScreen(
+                                              conversationTile: chats.recentChats[index],
+                                            );
+                                          },
+                                        ),
                                       )
                                     ],
                                   );
                                 }
-                                return PinnedChatBox(conversationTile: chats.recentChats[index]);
+                                return InkWell(
+                                  onLongPress: () {
+                                    toggleChatType(context: context, conversationTile: chats.recentChats[index]);
+                                  },
+                                  child: OpenContainer(
+                                    closedElevation: 0,
+                                    closedColor: Theme.of(context).scaffoldBackgroundColor,
+                                    closedBuilder: ((context, action) {
+                                      return PinnedChatBox(
+                                        conversationTile: chats.recentChats[index],
+                                      );
+                                    }),
+                                    openBuilder: (context, action) {
+                                      return ChatScreen(
+                                        conversationTile: chats.recentChats[index],
+                                      );
+                                    },
+                                  ),
+                                );
                               },
                               controller: scrollController,
                             ),
