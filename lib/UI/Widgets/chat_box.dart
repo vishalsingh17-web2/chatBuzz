@@ -22,8 +22,8 @@ class ChatBox extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 5),
                 alignment: Alignment.centerRight,
                 child: InkWell(
-                  onLongPress: () {
-                    deleteChat(context: context, time: chatData.time.toString(), roomId: roomId);
+                  onLongPress: () async {
+                    await deleteChat(context: context, time: chatData.time, roomId: roomId);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),

@@ -34,21 +34,22 @@ class GroupController extends ChangeNotifier {
       joinedUsers: [currentUser],
       pendingUsers: tile,
       createdBy: currentUser,
+      adminUsers: [currentUser],
       groupName: groupName,
       lastMessage: '',
       lastMessagetime: DateTime.now(),
       lastMessageSender: '',
       roomId: '',
+      count: 0,
     );
-    String id = FirebaseService.createGroupId(
-      users: tile + [currentUser],
-      groupName: groupName,
-    );
-    bool check = groupList.every((element) => element.roomId != id);
-    if (check) {
+    // String id = FirebaseService.createGroupId(
+    //   users: tile + [currentUser],
+    //   groupName: groupName,
+    // );
+    bool check = await FirebaseService.createGroup(tile: data);
+    if (!check) {
       groupList.add(data);
       notifyListeners();
-      await FirebaseService.createGroup(tile: data);
       return false;
     } else {
       return true;

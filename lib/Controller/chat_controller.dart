@@ -22,6 +22,7 @@ class ChatController extends ChangeNotifier {
     String roomId = FirebaseService.createRoomId(friendsDetail: friendsDetail, personalDetails: personalDetails);
     if (!flag) {
       ConversationTile chat = ConversationTile(
+        count: 0,
         userDetails: friendsDetail,
         lastMessage: " ",
         time: DateTime.now(),
@@ -100,13 +101,10 @@ class ChatController extends ChangeNotifier {
     notifyListeners();
   }
 
-  sendMessage({required String message, required String roomId, required String sentBy, required String avatar}) async {
+  sendMessage({required ChatData data, required String roomId}) async {
     await _firebaseService.addChat(
-      lastMessageSender: sentBy,
-      message: message,
       roomId: roomId,
-      avatarUrl: avatar,
-      date: DateTime.now(),
+      data: data,
     );
     clearAllChats();
     initializeAllChats();
@@ -127,7 +125,7 @@ class ChatController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteMessage({required String roomId, required String messageId}) async {
+  Future deleteMessage({required String roomId, required DateTime messageId}) async {
     for (int i = 0; i < chatData.length; i++) {
       if (chatData[i].time == messageId) {
         chatData.removeAt(i);
@@ -142,7 +140,7 @@ class ChatController extends ChangeNotifier {
 
   void deleteMessageLocally({required String messageId}) async {
     for (int i = 0; i < chatData.length; i++) {
-      if (chatData[i].time == messageId) {
+      if (chatData[i].time == DateTime.parse(messageId)) {
         chatData.removeAt(i);
         notifyListeners();
         break;

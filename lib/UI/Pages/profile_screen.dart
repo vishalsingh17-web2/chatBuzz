@@ -3,8 +3,8 @@ import 'package:chatbuzz/UI/Pages/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
-  ConversationTile tile;
-  ProfileScreen({Key? key, required this.tile}) : super(key: key);
+  final ConversationTile tile;
+  const ProfileScreen({Key? key, required this.tile}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();

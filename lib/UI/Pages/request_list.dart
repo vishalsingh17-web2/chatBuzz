@@ -123,7 +123,7 @@ class RequestList extends StatelessWidget {
                               ),
                               radius: 15,
                             ),
-                            trailing: groups.requestsList[index].joinedUsers.contains(groups.requestsList[index].userDetailsList[i].email)
+                            trailing: groups.requestsList[index].joinedUsers.contains(groups.requestsList[index].userDetailsList[i])
                                 ? Container(
                                     margin: const EdgeInsets.only(right: 30),
                                     padding: const EdgeInsets.all(5),

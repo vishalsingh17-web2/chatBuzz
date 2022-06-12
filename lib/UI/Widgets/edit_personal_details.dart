@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
+import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/Data/models/chat_data_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -106,35 +109,70 @@ toggleChatType({required BuildContext context, required ConversationTile convers
   );
 }
 
-deleteChat({required BuildContext context, required String time, required String roomId}) {
+deleteChat({required BuildContext context, required DateTime time, required String roomId}) {
   return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(5),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        titlePadding: const EdgeInsets.all(5),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        content: const Text("Are you sure you want to delete this chat?"),
+        actions: [
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
           ),
-          content: const Text("Are you sure you want to delete this chat?"),
-          actions: [
-            OutlinedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Cancel"),
+          OutlinedButton(
+            onPressed: () async {
+              await Provider.of<ChatController>(context, listen: false).deleteMessage(messageId: time, roomId: roomId);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
             ),
-            OutlinedButton(
-              onPressed: () async {
-                Provider.of<ChatController>(context, listen: false).deleteMessage(messageId: time, roomId: roomId);
-                Navigator.pop(context);
-              },
-              child: const Text(
-                "Delete",
-                style: TextStyle(color: Colors.red),
-              ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+deleteChatFromGroup({required BuildContext context, required DateTime time, required String roomId}) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        titlePadding: const EdgeInsets.all(5),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        content: const Text("Are you sure you want to delete this chat?"),
+        actions: [
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
+          OutlinedButton(
+            onPressed: () async {
+              await FirebaseService.deleteMessageFromGroup(roomId: roomId, time: time);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
             ),
-          ],
-        );
-      });
+          ),
+        ],
+      );
+    },
+  );
 }

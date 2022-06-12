@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<ChatController>(
       builder: (context, chats, child) {
-        if (chats.isLoading || chats.allChats.isEmpty) {
+        if (chats.isLoading) {
           return Center(
             child: Lottie.asset(
               'assets/animations/loading.json',
@@ -45,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       trailing: InkWell(
                         onTap: () {
-                          print("Searching");
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -92,6 +91,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               toggleChatType(context: context, conversationTile: chats.pinnedChats[index]);
                             },
                             child: OpenContainer(
+                              transitionType: ContainerTransitionType.fade,
+                              middleColor: Theme.of(context).scaffoldBackgroundColor,
+                              openColor: Theme.of(context).scaffoldBackgroundColor,
                               closedElevation: 0,
                               closedColor: Theme.of(context).scaffoldBackgroundColor,
                               closedBuilder: ((context, action) {
@@ -205,6 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           toggleChatType(context: context, conversationTile: chats.recentChats[index]);
                                         },
                                         child: OpenContainer(
+                                          transitionType: ContainerTransitionType.fade,
+                                          middleColor: Theme.of(context).scaffoldBackgroundColor,
+                                          openColor: Theme.of(context).scaffoldBackgroundColor,
                                           closedElevation: 0,
                                           closedColor: Theme.of(context).scaffoldBackgroundColor,
                                           closedBuilder: ((context, action) {
@@ -227,6 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     toggleChatType(context: context, conversationTile: chats.recentChats[index]);
                                   },
                                   child: OpenContainer(
+                                    transitionType: ContainerTransitionType.fade,
+                                    middleColor: Theme.of(context).scaffoldBackgroundColor,
+                                    openColor: Theme.of(context).scaffoldBackgroundColor,
                                     closedElevation: 0,
                                     closedColor: Theme.of(context).scaffoldBackgroundColor,
                                     closedBuilder: ((context, action) {

@@ -1,6 +1,4 @@
 import 'package:chatbuzz/Data/models/group_tile.dart';
-import 'package:chatbuzz/UI/Pages/group_chat_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

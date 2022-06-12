@@ -9,7 +9,6 @@ import 'package:chatbuzz/UI/Pages/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'UI/Pages/group.dart';
@@ -63,6 +62,7 @@ List screens = const [
 ];
 
 class MainScreen extends StatefulWidget {
+  
   const MainScreen({Key? key}) : super(key: key);
 
   @override
@@ -107,21 +107,23 @@ class _MainScreenState extends State<MainScreen> {
               child: CircularProgressIndicator(),
             );
           }
-          return SafeArea(
-            child: Scaffold(
-              body: screens[index],
-              bottomNavigationBar: BottomNavigationBar(
-                currentIndex: index,
-                selectedItemColor: Colors.blue,
-                unselectedItemColor: Theme.of(context).brightness == Brightness.dark ? Colors.blue.shade100 : Colors.grey,
-                onTap: (value) => setState(() => index = value),
-                items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chats"),
-                  BottomNavigationBarItem(icon: Icon(Icons.group), label: "Group Chats"),
-                  BottomNavigationBarItem(icon: Icon(Icons.call), label: "Call"),
-                  BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
-                ],
-              ),
+          return Scaffold(
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(0),
+              child: Container(),
+            ),
+            body: screens[index],
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: index,
+              selectedItemColor: Colors.blue,
+              unselectedItemColor: Theme.of(context).brightness == Brightness.dark ? Colors.blue.shade100 : Colors.grey,
+              onTap: (value) => setState(() => index = value),
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chats"),
+                BottomNavigationBarItem(icon: Icon(Icons.group), label: "Group Chats"),
+                BottomNavigationBarItem(icon: Icon(Icons.call), label: "Call"),
+                BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+              ],
             ),
           );
         },

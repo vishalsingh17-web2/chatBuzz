@@ -1,20 +1,20 @@
-import 'dart:convert';
-
 import 'package:chatbuzz/Data/models/user_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatData {
+  int id;
   String sentBy;
   String message;
   DateTime time;
   String avatarUrl;
   bool isMe;
 
-  ChatData({required this.sentBy, required this.message, required this.time, required this.avatarUrl, required this.isMe});
+  ChatData({required this.id, required this.sentBy, required this.message, required this.time, required this.avatarUrl, required this.isMe});
 
   factory ChatData.fromJson(QueryDocumentSnapshot<Object?> json, bool isMe) {
     return ChatData(
+      id: json.get('id') as int,
       sentBy: json.get('sender'),
       message: json['message'] as String,
       time: json['time'].toDate(),
@@ -25,6 +25,7 @@ class ChatData {
 
   factory ChatData.fromMap(Map<String, dynamic> data, bool isMe) {
     return ChatData(
+      id: data['id'] as int,
       sentBy: data['sender'],
       message: data['message'] as String,
       time: data['time'].toDate(),
@@ -35,6 +36,7 @@ class ChatData {
 }
 
 class ConversationTile {
+  int count;
   UserDetails userDetails;
   String lastMessage;
   DateTime time;
@@ -45,6 +47,7 @@ class ConversationTile {
   String roomId;
 
   ConversationTile({
+    required this.count,
     required this.userDetails,
     required this.lastMessage,
     required this.time,
@@ -58,6 +61,7 @@ class ConversationTile {
   factory ConversationTile.fromMap(Map<String, dynamic> data) {
     var friendsDetails = data['userDetails'][0]['uid'] == FirebaseAuth.instance.currentUser!.uid ? data['userDetails'][1] : data['userDetails'][0];
     return ConversationTile(
+      count: data['count'] as int,
       userDetails: UserDetails.fromMap(friendsDetails),
       lastMessage: data['lastMessage'],
       time: data['lastMessageTime'].toDate(),
@@ -74,6 +78,7 @@ class ConversationTile {
 }
 
 class GroupChatData {
+  int id;
   String sentByEmail;
   String sendersName;
   String message;
@@ -81,10 +86,19 @@ class GroupChatData {
   String avatarUrl;
   bool isMe;
 
-  GroupChatData({required this.sentByEmail, required this.sendersName, required this.message, required this.time, required this.avatarUrl, required this.isMe});
+  GroupChatData({
+    required this.id,
+    required this.sentByEmail,
+    required this.sendersName,
+    required this.message,
+    required this.time,
+    required this.avatarUrl,
+    required this.isMe,
+  });
 
   factory GroupChatData.fromJson(QueryDocumentSnapshot<Object?> json, bool isMe) {
     return GroupChatData(
+      id: json.get('id') as int,
       sentByEmail: json.get('senderEmail'),
       message: json['message'] as String,
       sendersName: json['sendersName'] as String,
@@ -96,6 +110,7 @@ class GroupChatData {
 
   factory GroupChatData.fromMap(Map<String, dynamic> data, bool isMe) {
     return GroupChatData(
+      id: data['id'] as int,
       sendersName: data['sendersName'],
       sentByEmail: data['senderEmail'],
       message: data['message'] as String,
@@ -106,6 +121,7 @@ class GroupChatData {
   }
   static fromGroupChatData(GroupChatData groupChatData) {
     return {
+      'id': groupChatData.id,
       'senderEmail': groupChatData.sentByEmail,
       'message': groupChatData.message,
       'time': groupChatData.time,

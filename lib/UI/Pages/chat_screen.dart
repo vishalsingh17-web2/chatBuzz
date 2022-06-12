@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:chatbuzz/Controller/chat_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
@@ -14,8 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  ConversationTile conversationTile;
-  ChatScreen({Key? key, required this.conversationTile}) : super(key: key);
+  final ConversationTile conversationTile;
+  const ChatScreen({Key? key, required this.conversationTile}) : super(key: key);
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -25,43 +23,43 @@ class _ChatScreenState extends State<ChatScreen> {
   TextEditingController message = TextEditingController();
 
   FirebaseService firebaseService = FirebaseService();
-  StreamSubscription? _subscription;
+  // StreamSubscription? _subscription;
 
-  eventHandler() async {
-    var chats = Provider.of<ChatController>(context, listen: false);
-    var per = Provider.of<PersonalDetails>(context, listen: false);
-    FirebaseService.createMessageCollection(roomId: widget.conversationTile.roomId).then((value) {
-      _subscription = firebaseService.getChats(roomId: widget.conversationTile.roomId).listen((event) {
-        if (chats.chatData.isEmpty) {
-          event.docChanges.forEach((change) {
-            if (change.type == DocumentChangeType.added) {
-              chats.addChatToList(
-                ChatData.fromMap(
-                  change.doc.data()!,
-                  per.personalDetails.email == change.doc.data()!['sender'],
-                ),
-              );
-            } else if (change.type == DocumentChangeType.removed) {
-              chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
-            }
-          });
-        } else {
-          event.docChanges.forEach((change) {
-            if (change.type == DocumentChangeType.added && per.personalDetails.email != change.doc.data()!['sender'] && change.doc.data()!['sender'] != per.personalDetails.email) {
-              chats.addChatToList(
-                ChatData.fromMap(
-                  change.doc.data()!,
-                  false,
-                ),
-              );
-            } else if (change.type == DocumentChangeType.removed && change.doc.data()!['sender'] != per.personalDetails.email) {
-              chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
-            }
-          });
-        }
-      });
-    });
-  }
+  // eventHandler() async {
+  //   var chats = Provider.of<ChatController>(context, listen: false);
+  //   var per = Provider.of<PersonalDetails>(context, listen: false);
+  //   FirebaseService.createMessageCollection(roomId: widget.conversationTile.roomId).then((value) {
+  //     _subscription = firebaseService.getChats(roomId: widget.conversationTile.roomId).listen((event) {
+  //       if (chats.chatData.isEmpty) {
+  //         event.docChanges.forEach((change) {
+  //           if (change.type == DocumentChangeType.added) {
+  //             chats.addChatToList(
+  //               ChatData.fromMap(
+  //                 change.doc.data()!,
+  //                 per.personalDetails.email == change.doc.data()!['sender'],
+  //               ),
+  //             );
+  //           } else if (change.type == DocumentChangeType.removed) {
+  //             chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
+  //           }
+  //         });
+  //       } else {
+  //         event.docChanges.forEach((change) {
+  //           if (change.type == DocumentChangeType.added && per.personalDetails.email != change.doc.data()!['sender'] && change.doc.data()!['sender'] != per.personalDetails.email) {
+  //             chats.addChatToList(
+  //               ChatData.fromMap(
+  //                 change.doc.data()!,
+  //                 false,
+  //               ),
+  //             );
+  //           } else if (change.type == DocumentChangeType.removed && change.doc.data()!['sender'] != per.personalDetails.email) {
+  //             chats.deleteMessageLocally(messageId: change.doc.data()!['time']);
+  //           }
+  //         });
+  //       }
+  //     });
+  //   });
+  // }
 
   // @override
   // void initState() {
@@ -150,7 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 return GroupedListView<ChatData, String>(
                   // sort: true,
                   // order: GroupedListOrder.ASC,
-                  // itemComparator: (val2, val1) => DateTime.parse(val1.time).compareTo(DateTime.parse(val2.time)),
+                  // itemComparator: (val2, val1) => val1.time.compareTo(val2.time),
                   elements: FirebaseService.mapDataToChat(data: snapshot.data!.docs),
                   reverse: true,
                   useStickyGroupSeparators: true,
@@ -213,21 +211,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     String temp = message.text;
                     message.clear();
                     var chats = Provider.of<ChatController>(context, listen: false);
-                    chats.addChatToList(
-                      ChatData(
-                        sentBy: pers.personalDetails.email,
-                        message: temp,
-                        time: DateTime.now(),
-                        avatarUrl: pers.personalDetails.profilePicture,
-                        isMe: true,
-                      ),
-                    );
-                    await chats.sendMessage(
-                      message: temp,
-                      roomId: widget.conversationTile.roomId,
+                    ChatData data = ChatData(
+                      id: widget.conversationTile.count + 1,
                       sentBy: pers.personalDetails.email,
-                      avatar: pers.personalDetails.profilePicture,
+                      message: temp,
+                      time: DateTime.now(),
+                      avatarUrl: pers.personalDetails.profilePicture,
+                      isMe: true,
                     );
+                    chats.addChatToList(data);
+                    await chats.sendMessage(roomId: widget.conversationTile.roomId, data: data);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -248,8 +241,8 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class ProfileImage extends StatefulWidget {
-  String link;
-  ProfileImage({Key? key, required this.link}) : super(key: key);
+  final String link;
+  const ProfileImage({Key? key, required this.link}) : super(key: key);
 
   @override
   State<ProfileImage> createState() => _ProfileImageState();

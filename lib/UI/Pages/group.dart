@@ -1,5 +1,4 @@
 import 'package:animations/animations.dart';
-import 'package:chatbuzz/Controller/group_controller.dart';
 import 'package:chatbuzz/Controller/personal_detail_controller.dart';
 import 'package:chatbuzz/Data/Repository/firebase_helper.dart';
 import 'package:chatbuzz/Data/models/group_tile.dart';
@@ -90,6 +89,10 @@ class _GroupState extends State<Group> {
                         itemCount: elements.length,
                         itemBuilder: (context, index) {
                           return OpenContainer(
+                            transitionType: ContainerTransitionType.fade,
+                            middleColor: Theme.of(context).scaffoldBackgroundColor,
+                            openColor: Theme.of(context).scaffoldBackgroundColor,
+                            closedElevation: 0,
                             closedColor: Theme.of(context).scaffoldBackgroundColor,
                             closedBuilder: ((context, action) {
                               return GroupChatTile(

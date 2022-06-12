@@ -23,9 +23,9 @@ class FirebaseService {
       await auth.signInWithCredential(credential);
       await saveUserInfo();
     } on FirebaseAuthException catch (e) {
-      print(e.code);
+      Exception(e.code);
     } catch (e) {
-      print(e.toString());
+      Exception(e.toString());
     }
   }
 
@@ -106,6 +106,7 @@ class FirebaseService {
     }
     List<String> authors = [tile.userDetails.email, currentUser.email];
     await chats.doc(roomId).set({
+      'count': tile.count,
       'isPinned': {tile.userDetails.email: false, currentUser.email: false},
       'userDetails': [
         UserDetails.fromUserDetails(tile.userDetails),
@@ -152,26 +153,27 @@ class FirebaseService {
 
   addChat({
     required String roomId,
-    required String message,
-    required String lastMessageSender,
-    required avatarUrl,
-    required DateTime date,
+    required ChatData data,
   }) async {
     await chats.doc(roomId).update({
-      'lastMessage': message,
-      'lastMessageTime': date,
-      'lastMessageSender': lastMessageSender,
+      'count': FieldValue.increment(1),
+      'lastMessage': data.message,
+      'lastMessageTime': data.time,
+      'lastMessageSender': data.sentBy,
     });
+    DocumentSnapshot check = await chats.doc(roomId).get();
+    var snap = check.data() as Map<String, dynamic>;
     await chats.doc(roomId).collection('messages').add({
-      'message': message,
-      'sender': lastMessageSender,
-      'time': date,
-      'avatar': avatarUrl,
+      'message': data.message,
+      'sender': data.sentBy,
+      'time': data.time,
+      'avatar': data.avatarUrl,
+      'id': snap['count'],
     });
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getChats({required String roomId}) {
-    return chats.doc(roomId).collection('messages').orderBy('time', descending: true).snapshots();
+    return chats.doc(roomId).collection('messages').orderBy('id', descending: true).snapshots();
   }
 
   static List<ChatData> mapDataToChat({required List<QueryDocumentSnapshot<Map<String, dynamic>>> data}) {
@@ -188,17 +190,18 @@ class FirebaseService {
     List<Object?> allData = querySnapshot.docs.map((doc) => doc.data()).toList();
     List<Map<String, dynamic>> data = allData.map((e) => e as Map<String, dynamic>).toList();
     List<ChatData> chatData = [];
-    data.forEach((element) {
+    for (var element in data) {
       chatData.add(ChatData.fromMap(element, auth.currentUser!.email == element['sender']));
-    });
+    }
+
     return chatData;
   }
 
   deleteChatRoom({required String roomId}) async {
     await chats.doc(roomId).collection('messages').get().then((value) {
-      value.docs.forEach((element) {
+      for (var element in value.docs) {
         element.reference.delete();
-      });
+      }
     });
     await chats.doc(roomId).delete();
   }
@@ -209,11 +212,11 @@ class FirebaseService {
     });
   }
 
-  deleteMessage({required String roomId, required String time}) async {
-    await chats.doc(roomId).collection('messages').where('time', isEqualTo: time).get().then((value) {
-      value.docs.forEach((element) {
+  deleteMessage({required String roomId, required DateTime time}) async {
+    await chats.doc(roomId).collection('messages').where('time', isEqualTo: Timestamp.fromDate(time)).get().then((value) {
+      for (var element in value.docs) {
         element.reference.delete();
-      });
+      }
     });
   }
 
@@ -248,9 +251,9 @@ class FirebaseService {
 
   static createGroupId({required List<UserDetails> users, required String groupName}) {
     List<String> userEmail = [];
-    users.forEach((element) {
+    for (var element in users) {
       userEmail.add(element.email);
-    });
+    }
     userEmail.sort();
     String roomId = "$groupName-${userEmail.join('_')}";
     return roomId;
@@ -259,7 +262,13 @@ class FirebaseService {
   static createGroup({required GroupTile tile}) async {
     String roomId = createGroupId(users: tile.pendingUsers + tile.joinedUsers, groupName: tile.groupName);
     tile.roomId = roomId;
-    await groups.doc(roomId).set(GroupTile.fromGroupTile(tile));
+    bool check = await groups.doc(roomId).get().then((value) => value.exists);
+    if (check) {
+      return true;
+    } else {
+      await groups.doc(roomId).set(GroupTile.fromGroupTile(tile));
+      return false;
+    }
   }
 
   joinGroup({required GroupTile tile, required UserDetails personalDetails}) async {
@@ -278,23 +287,93 @@ class FirebaseService {
   // Group chat function are defined below
   sendMessageInGroup({required GroupTile tile, required GroupChatData message}) async {
     await groups.doc(tile.roomId).update({
+      'count': FieldValue.increment(1),
       'lastMessage': message.message,
       'lastMessagetime': message.time,
       'lastMessageSender': message.sendersName,
     });
-    await groups.doc(tile.roomId).collection('messages').doc(DateTime.now().toString()).set(GroupChatData.fromGroupChatData(message));
+    DocumentSnapshot value = await groups.doc(tile.roomId).get();
+    Map<String, dynamic> data = value.data() as Map<String, dynamic>;
+    message.id = data['count'];
+    await groups.doc(tile.roomId).collection('messages').add(GroupChatData.fromGroupChatData(message));
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getGroupChats({required String roomId}) {
-    return groups.doc(roomId).collection('messages').orderBy('time', descending: true).snapshots().asBroadcastStream();
-  }
+  // Stream<QuerySnapshot<Map<String, dynamic>>> getGroupChats({required String roomId}) {
+  //   return groups.doc(roomId).collection('messages').orderBy('time', descending: true).snapshots().asBroadcastStream();
+  // }
 
   getStreamGroupChats({required String roomId}) {
-    return groups.doc(roomId).collection('messages').orderBy('time', descending: true).snapshots();
+    return groups.doc(roomId).collection('messages').orderBy('id', descending: true).snapshots();
   }
 
   static List<GroupChatData> mapDataToGroupTile({required List<QueryDocumentSnapshot<Map<String, dynamic>>> data}) {
     List<GroupChatData> groupTiles = List.from(data.map((e) => GroupChatData.fromMap(e.data(), e.data()['senderEmail'] == FirebaseAuth.instance.currentUser!.email)));
     return groupTiles;
+  }
+
+  static deleteMessageFromGroup({required String roomId, required DateTime time}) async {
+    await groups.doc(roomId).collection('messages').where('time', isEqualTo: Timestamp.fromDate(time)).get().then((value) {
+      for (var element in value.docs) {
+        element.reference.delete();
+      }
+    });
+  }
+
+  static Future changeGroupName({required String roomId, required String groupName}) async {
+    await groups.doc(roomId).update({'groupName': groupName});
+  }
+
+  static Stream<DocumentSnapshot<Object?>> streamGroupInfo({required String roomId}) {
+    return groups.doc(roomId).snapshots().asBroadcastStream();
+  }
+
+  static addPersonToGroup({required String roomId, required UserDetails personal}) async {
+    await groups.doc(roomId).update({
+      'pendingUsers': FieldValue.arrayUnion([UserDetails.fromUserDetails(personal)]),
+      'userDetails': FieldValue.arrayUnion([UserDetails.fromUserDetails(personal)])
+    });
+  }
+
+  static removePersonFromGroup({required GroupTile tile, required UserDetails personal}) async {
+    for (var i in tile.adminUsers) {
+      if (personal.id == i.id) {
+        await removeAdminPermissions(tile: tile, personal: personal);
+        break;
+      }
+    }
+    await groups.doc(tile.roomId).update({
+      'joinedUsers': FieldValue.arrayRemove([UserDetails.fromUserDetails(personal)])
+    });
+  }
+
+  static giveAdminPermissions({required String roomId, required UserDetails personal}) async {
+    await groups.doc(roomId).update({
+      'adminUsers': FieldValue.arrayUnion([UserDetails.fromUserDetails(personal)])
+    });
+  }
+
+  static removeAdminPermissions({required GroupTile tile, required UserDetails personal}) async {
+    List<UserDetails> newList = List.from(tile.adminUsers);
+    for (var i in newList) {
+      if (personal.id == i.id) {
+        newList.remove(i);
+        break;
+      }
+    }
+    await groups.doc(tile.roomId).update({'adminUsers': List.from(newList).map((e) => UserDetails.fromUserDetails(e)).toList()});
+  }
+
+  static Future deleteRequestForUser({required GroupTile tile, required UserDetails personal}) async {
+    List<UserDetails> newList = List.from(tile.pendingUsers);
+    for (var i in newList) {
+      if (personal.id == i.id) {
+        newList.remove(i);
+        break;
+      }
+    }
+    await groups.doc(tile.roomId).update({'pendingUsers': List.from(newList).map((e) => UserDetails.fromUserDetails(e)).toList()});
+  }
+  static deleteGroup({required GroupTile tile}) async {
+    await groups.doc(tile.roomId).delete();
   }
 }

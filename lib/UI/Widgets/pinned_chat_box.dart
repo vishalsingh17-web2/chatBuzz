@@ -1,13 +1,10 @@
 import 'package:chatbuzz/Data/models/chat_data_model.dart';
-import 'package:chatbuzz/UI/Pages/chat_screen.dart';
-import 'package:chatbuzz/UI/Widgets/edit_personal_details.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class PinnedChatBox extends StatefulWidget {
-  ConversationTile conversationTile;
-  PinnedChatBox({Key? key, required this.conversationTile}) : super(key: key);
+  final ConversationTile conversationTile;
+  const PinnedChatBox({Key? key, required this.conversationTile}) : super(key: key);
 
   @override
   State<PinnedChatBox> createState() => _PinnedChatBoxState();
@@ -38,7 +35,7 @@ class _PinnedChatBoxState extends State<PinnedChatBox> {
       ),
       trailing: !widget.conversationTile.isPinnedChat
           ? Text(
-              widget.conversationTile.time == "" || widget.conversationTile.time == " " ? "" : DateFormat.jm().format(widget.conversationTile.time),
+              DateFormat.jm().format(widget.conversationTile.time),
               style: TextStyle(
                 color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
                 fontSize: 10,
